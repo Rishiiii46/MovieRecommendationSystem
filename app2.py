@@ -15,12 +15,11 @@ try:
     print("✅ Movie data and similarity matrix loaded successfully.")
 except Exception as e:
     print(f"❌ Error loading movie data or similarity matrix: {e}")
-
-# Function to fetch movie details from TMDB
+    
 def fetch_movie_details(movie_id):
     try:
         response = requests.get(f'https://api.themoviedb.org/3/movie/{movie_id}?api_key={API_KEY}&language=en-US', timeout=15)
-        response.raise_for_status()  # Ensure we raise an error if there's an HTTP issue
+        response.raise_for_status()
         data = response.json()
     except requests.exceptions.RequestException as e:
         return {
@@ -47,20 +46,19 @@ def fetch_movie_details(movie_id):
         'runtime': data.get('runtime', 'Unknown'),
     }
 
-# Function to recommend movies
 def recommend(movie):
-    movie = movie.lower().strip()  # Normalize input to lowercase for case-insensitive matching
-    print(f"Looking for recommendations for: {movie}")  # Debugging print
+    movie = movie.lower().strip()  
+    print(f"Looking for recommendations for: {movie}")  
 
-    # Check if the movie exists in the dataset
-    matching_movies = movies[movies['title'].str.lower() == movie]  # Case-insensitive search
+
+    matching_movies = movies[movies['title'].str.lower() == movie]  
     if matching_movies.empty:
-        print(f"⚠ Movie '{movie}' not found in dataset!")  # Debugging message
-        return None  # Return None if movie is not found
+        print(f"⚠ Movie '{movie}' not found in dataset!") 
+        return None  
 
     movie_index = matching_movies.index[0]
     distances = similarity[movie_index]
-    movie_list = sorted(list(enumerate(distances)), reverse=True, key=lambda x: x[1])[1:6]  # Get top 5 similar movies
+    movie_list = sorted(list(enumerate(distances)), reverse=True, key=lambda x: x[1])[1:6] 
 
     recommended_movies = []
     for i in movie_list:
@@ -70,23 +68,22 @@ def recommend(movie):
 
     return recommended_movies
 
-# Route for the main page
 @app.route('/')
 def index():
-    movie_titles = movies['title'].values  # Get movie titles from the dataset
+    movie_titles = movies['title'].values  
     return render_template('index.html', movies=movie_titles)
 
 # Route for recommendations
 @app.route('/recommend', methods=['POST'])
 def recommend_movies():
-    selected_movie = request.form.get('movie')  # Get movie name from dropdown
-    search_input = request.form.get('search')  # Get the search input value
+    selected_movie = request.form.get('movie') 
+    search_input = request.form.get('search')  
 
-    # If search input is filled, use it as the movie name
+  
     if search_input:
         selected_movie = search_input
 
-    # If no movie is selected, go back to the index page
+
     if not selected_movie:
         print("⚠ No movie selected!")
         return redirect(url_for('index'))
