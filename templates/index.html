@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Movie Recommendation System</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "Arial", sans-serif;
+            background-image: url("https://cdn.mos.cms.futurecdn.net/rDJegQJaCyGaYysj2g5XWY.jpg");
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            perspective: 1000px;
+            overflow: hidden;
+        }
+
+        header {
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(50px);
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 15px 0;
+            transform: translateZ(20px);
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform-style: preserve-3d;
+        }
+
+        .container {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            width: 90%;
+            max-width: 1200px;
+            height: 80vh;
+            backdrop-filter: blur(5px);
+            border-radius: 20px;
+            transform: translateZ(30px);
+            overflow-y: auto;
+        }
+
+        form {
+            margin: 10px;
+            gap: 10px;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            margin: 10px 0;
+            font-size: 1em;
+            background-color: rgba(255, 255, 255, 0.65);
+            transform: translateZ(10px);
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #e50914;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s, transform 0.3s;
+            transform: translateZ(20px);
+        }
+
+        button:hover {
+            background-color: #f40612;
+            transform: scale(1.05) translateZ(20px);
+        }
+
+        .recommendations {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+            padding-bottom: 20px;
+        }
+
+        .card {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            transition: transform 0.5s ease, box-shadow 0.5s ease;
+            transform-style: preserve-3d;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: rotateY(15deg) rotateX(10deg) translateZ(20px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .card img {
+            width: 100%;
+            border-radius: 10px;
+            transform: translateZ(20px);
+        }
+
+        .card h3,
+        .card p {
+            transform: translateZ(30px);
+        }
+
+        .card.flip {
+            transform: rotateY(180deg);
+        }
+
+        .card .front,
+        .card .back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 10px;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .card .back {
+            transform: rotateY(180deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #e50914;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            transform: translateZ(20px);
+            transition: opacity 0.3s ease;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        h4 {
+            color: azure;
+            font-size: 20px;
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            transform: translateZ(20px);
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: -1;
+        }
+
+        body::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("https://cdn.mos.cms.futurecdn.net/rDJegQJaCyGaYysj2g5XWY.jpg") center/cover no-repeat;
+            z-index: -2;
+            transform: translateZ(-100px) scale(1.2);
+            filter: blur(10px);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+                padding: 20px;
+            }
+
+            .recommendations {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 10px;
+            }
+
+            .card {
+                padding: 10px;
+            }
+
+            h4 {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h2>🎬 Movie Recommendation System</h2>
+    </header>
+
+    <main>
+        <div class="container">
+            <h4>Select a movie to get Recommendations :</h4>
+            <form method="POST" action="/recommend">
+                <input type="text" id="movieSearch" name="search" placeholder="Search for a movie..." aria-label="Search for a movie" onkeyup="filterMovies()" />
+                <select name="movie" id="movieSelect" aria-label="Choose a movie">
+                    <option value="" disabled selected>-- Choose a Movie --</option>
+                    {% for movie in movies %}
+                    <option value="{{ movie }}">{{ movie }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Recommend</button>
+            </form>
+
+            <div class="loading-spinner" id="loadingSpinner" style="display: none;"></div>
+
+            {% if selected_movie %}
+            <h4>Recommendations based on: {{ selected_movie }}</h4>
+            {% endif %}
+
+            {% if recommendations %}
+            <div class="recommendations">
+                {% for movie in recommendations %}
+                <div class="card" onclick="this.classList.toggle('flip')">
+                    <div class="front">
+                        <img src="{{ movie.poster }}" alt="{{ movie.title }}" />
+                        <h3>{{ movie.title }}</h3>
+                    </div>
+                    <div class="back">
+                        <p><strong>Runtime:</strong> {{ movie.runtime }} minutes</p>
+                        <p><strong>Rating:</strong> {{ movie.rating }}/10</p>
+                        <p><strong>Genres:</strong> {{ movie.genres | join(', ') }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p>No recommendations found.</p>
+            {% endif %}
+        </div>
+    </main>
+
+    <script>
+        document.querySelector('form').addEventListener('submit', () => {
+            document.getElementById('loadingSpinner').style.display = 'block';
+        });
+
+        function debounce(func, delay) {
+            let timeout;
+            return function (...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), delay);
+            };
+        }
+
+        const filterMovies = debounce(() => {
+            const input = document.getElementById('movieSearch').value.toUpperCase().trim();
+            const select = document.getElementById('movieSelect');
+            const options = select.getElementsByTagName('option');
+
+            for (let i = 0; i < options.length; i++) {
+                const optionText = options[i].text.toUpperCase();
+                options[i].style.display = optionText.indexOf(input) > -1 ? '' : 'none';
+            }
+        }, 300);
+
+        document.getElementById('movieSearch').addEventListener('input', filterMovies);
+    </script>
+</body>
+</html>
